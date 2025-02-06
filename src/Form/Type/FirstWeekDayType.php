@@ -22,6 +22,7 @@ final class FirstWeekDayType extends AbstractType
     {
         $choices = [
             'Monday' => 'monday',
+            'Saturday' => 'saturday',
             'Sunday' => 'sunday'
         ];
 

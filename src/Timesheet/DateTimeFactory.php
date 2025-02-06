@@ -17,20 +17,20 @@ use DateTimeZone;
 final class DateTimeFactory
 {
     private DateTimeZone $timezone;
-    private bool $startOnSunday = false;
+    private string $fistDayOfWeek = FirstDayOfWeek::MONDAY;
 
     public static function createByUser(User $user): self
     {
-        return new DateTimeFactory(new \DateTimeZone($user->getTimezone()), $user->isFirstDayOfWeekSunday());
+        return new DateTimeFactory(new \DateTimeZone($user->getTimezone()), $user->getFirstDayOfWeek());
     }
 
-    public function __construct(?DateTimeZone $timezone = null, bool $startOnSunday = false)
+    public function __construct(?DateTimeZone $timezone = null, string $fistDayOfWeek = FirstDayOfWeek::MONDAY)
     {
         if (null === $timezone) {
             $timezone = new \DateTimeZone(date_default_timezone_get());
         }
         $this->timezone = $timezone;
-        $this->startOnSunday = $startOnSunday;
+        $this->firstDayOfWeek = $fistDayOfWeek;
     }
 
     public function getTimezone(): DateTimeZone
@@ -72,15 +72,29 @@ final class DateTimeFactory
     public function getStartOfWeek(DateTimeInterface|string|null $date = null): DateTime
     {
         $date = $this->getDate($date);
-        $firstDay = 1;
 
-        if ($this->startOnSunday) {
-            $firstDay = 7;
+        switch ($this->firstDayOfWeek) {
+            case FirstDayOfWeek::SATURDAY:
+                $firstDay = 6;
 
-            // if today = sunday => increase week by one
-            if ($date->format('N') !== '7') {
-                $date = $date->modify('-1 week');
-            }
+                // if today = saturday => increase week by two
+                if ($date->format('N') !== '6') {
+                    $date = $date->modify('-2 week');
+                }
+                break;
+            
+                case FirstDayOfWeek::SUNDAY:
+                    $firstDay = 7;
+
+                    // if today = sunday => increase week by one
+                    if ($date->format('N') !== '7') {
+                        $date = $date->modify('-1 week');
+                    }
+                    break;
+            
+            default:
+                $firstDay = 1;
+                break;
         }
 
         return $this->createWeekDateTime((int) $date->format('o'), (int) $date->format('W'), $firstDay, 0, 0, 0);
@@ -89,17 +103,31 @@ final class DateTimeFactory
     public function getEndOfWeek(DateTimeInterface|string|null $date = null): DateTime
     {
         $date = $this->getDate($date);
-        $lastDay = 7;
 
-        if ($this->startOnSunday) {
-            $lastDay = 6;
+        switch ($this->firstDayOfWeek) {
+            case FirstDayOfWeek::SATURDAY:
+                $lastDay = 5;
 
-            // only change when today is not sunday
-            if ($date->format('N') === '7') {
-                $date = $date->modify('+1 week');
-            }
+                // only change when today is not saturday
+                if ($date->format('N') === '6') {
+                    $date = $date->modify('+2 week');
+                }
+                break;
+            
+                case FirstDayOfWeek::SUNDAY:
+                    $lastDay = 6;
+
+                    // only change when today is not sunday
+                    if ($date->format('N') === '7') {
+                        $date = $date->modify('+1 week');
+                    }
+                    break;
+            
+            default:
+                $lastDay = 7;
+                break;
         }
-
+        
         return $this->createWeekDateTime((int) $date->format('o'), (int) $date->format('W'), $lastDay, 23, 59, 59);
     }
 

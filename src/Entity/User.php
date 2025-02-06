@@ -457,11 +457,6 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         $this->setPreferenceValue(UserPreference::LANGUAGE, $language ?? User::DEFAULT_LANGUAGE);
     }
 
-    public function isFirstDayOfWeekSunday(): bool
-    {
-        return $this->getFirstDayOfWeek() === 'sunday';
-    }
-
     public function getFirstDayOfWeek(): string
     {
         return $this->getPreferenceValue(UserPreference::FIRST_WEEKDAY, User::DEFAULT_FIRST_WEEKDAY, false);
